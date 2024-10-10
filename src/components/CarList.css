@@ -14,3 +14,15 @@
     }
   }
   
+  .sum-flex {
+    margin-left: 20px;
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    color:#030b2a;
+
+  }
+  .sum-flex span {
+    font-weight: 700;
+    color:#f00d0d;
+  }

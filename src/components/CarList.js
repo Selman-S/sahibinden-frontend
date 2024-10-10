@@ -6,6 +6,7 @@ import * as XLSX from "xlsx";
 import moment from "moment";
 import "moment/locale/tr";
 import { Select } from "antd";
+import "./CarList.css"
 
 moment.locale("tr");
 
@@ -15,6 +16,9 @@ function CarList() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [filteredCars, setFilteredCars] = useState([]);
+  const [totalCarsInDB, setTotalCarsInDB] = useState(0);
+  const [medianPrices, setMedianPrices] = useState({});
+
 
   const [filterOptions, setFilterOptions] = useState({
     brands: [],
@@ -36,9 +40,21 @@ function CarList() {
 
   useEffect(() => {
     fetchCars();
-    fetchBrands()
+    fetchBrands();
+    fetchTotalCars(); // Toplam araç sayısını getir
   }, [page, pageSize]);
-  
+
+  const fetchTotalCars = () => {
+    axios
+      .get("/cars/total")
+      .then((res) => {
+        setTotalCarsInDB(res.data.totalCars);
+      })
+      .catch((err) => {
+        console.error("Toplam araç sayısı alınırken hata:", err);
+      });
+  };
+
   const fetchBrands = () => {
     axios
       .get("/cars/filters")
@@ -49,7 +65,7 @@ function CarList() {
         console.error("Markalar alınırken hata:", err);
       });
   };
-  const fetchCars = () => {
+  const fetchCars = async () => {
     const params = {
       page,
       limit: pageSize,
@@ -63,147 +79,163 @@ function CarList() {
       kmMax: filters.kmRange ? filters.kmRange[1] : null,
       priceMin: filters.priceRange ? filters.priceRange[0] : null,
       priceMax: filters.priceRange ? filters.priceRange[1] : null,
-      adDateStart: filters.adDateRange[0] ? filters.adDateRange[0].format('YYYY-MM-DD') : null,
-      adDateEnd: filters.adDateRange[1] ? filters.adDateRange[1].format('YYYY-MM-DD') : null,
+      adDateStart: filters.adDateRange[0]
+        ? filters.adDateRange[0].format("YYYY-MM-DD")
+        : null,
+      adDateEnd: filters.adDateRange[1]
+        ? filters.adDateRange[1].format("YYYY-MM-DD")
+        : null,
     };
-  
-    axios.get('/cars', { params })
-      .then(res => {
-        setCars(res.data.cars);
-        setTotal(res.data.total);
-        setFilteredCars(res.data.cars);
-      })
-      .catch(err => {
-        console.error('Veriler alınırken hata:', err);
-      });
-  };
-  
 
- // Handle filter change
-const handleFilterChange = (name, value) => {
-    setFilters(prevFilters => ({
+    try {
+      const res = await axios.get('/cars', { params });
+      const carsData = res.data.cars;
+      setCars(carsData);
+      setTotal(res.data.total);
+      setFilteredCars(carsData);
+  
+      // Her araç için medyan fiyatı al
+      const medianPricesData = {};
+      for (const car of carsData) {
+        const response = await axios.get(`/cars/${car._id}/similar-price`);
+        medianPricesData[car._id] = response.data;
+      }
+      setMedianPrices(medianPricesData);
+    } catch (err) {
+      console.error('Veriler alınırken hata:', err);
+    }
+  };
+
+  // Handle filter change
+  const handleFilterChange = (name, value) => {
+    setFilters((prevFilters) => ({
       ...prevFilters,
-      [name]: value
+      [name]: value,
     }));
   };
 
-
   const handleBrandChange = (brand) => {
-    console.log('handle');
-    
+    console.log("handle");
+
     if (brand) {
       // Seri, model ve lokasyon seçimlerini sıfırla
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
         series: null,
         model: null,
-        location: null
+        location: null,
       }));
-      setFilterOptions(prev => ({
+      setFilterOptions((prev) => ({
         ...prev,
         series: [],
         models: [],
-        locations: []
+        locations: [],
       }));
       // Seçilen markaya ait serileri getir
-      axios.get('/cars/series', { params: { brand } })
-        .then(res => {
-          setFilterOptions(prev => ({ ...prev, series: res.data.series }));
+      axios
+        .get("/cars/series", { params: { brand } })
+        .then((res) => {
+          setFilterOptions((prev) => ({ ...prev, series: res.data.series }));
         })
-        .catch(err => {
-          console.error('Seriler alınırken hata:', err);
+        .catch((err) => {
+          console.error("Seriler alınırken hata:", err);
         });
     } else {
       // Marka seçimi temizlendiyse, seri, model ve lokasyon seçimlerini ve seçeneklerini sıfırla
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
         series: null,
         model: null,
-        location: null
+        location: null,
       }));
-      setFilterOptions(prev => ({
+      setFilterOptions((prev) => ({
         ...prev,
         series: [],
         models: [],
-        locations: []
+        locations: [],
       }));
     }
   };
-  
-const handleSeriesChange = (series) => {
-  if (series) {
-    // Model ve lokasyon seçimlerini sıfırla
-    setFilters(prev => ({
-      ...prev,
-      model: null,
-      location: null
-    }));
-    setFilterOptions(prev => ({
-      ...prev,
-      models: [],
-      locations: []
-    }));
-    // Seçilen marka ve seriye ait modelleri getir
-    axios.get('/cars/models', { params: { brand: filters.brand, series } })
-      .then(res => {
-        setFilterOptions(prev => ({ ...prev, models: res.data.models }));
-      })
-      .catch(err => {
-        console.error('Modeller alınırken hata:', err);
-      });
-  } else {
-    // Seri seçimi temizlendiyse, model ve lokasyon seçimlerini ve seçeneklerini sıfırla
-    setFilters(prev => ({
-      ...prev,
-      model: null,
-      location: null
-    }));
-    setFilterOptions(prev => ({
-      ...prev,
-      models: [],
-      locations: []
-    }));
-  }
-};
 
+  const handleSeriesChange = (series) => {
+    if (series) {
+      // Model ve lokasyon seçimlerini sıfırla
+      setFilters((prev) => ({
+        ...prev,
+        model: null,
+        location: null,
+      }));
+      setFilterOptions((prev) => ({
+        ...prev,
+        models: [],
+        locations: [],
+      }));
+      // Seçilen marka ve seriye ait modelleri getir
+      axios
+        .get("/cars/models", { params: { brand: filters.brand, series } })
+        .then((res) => {
+          setFilterOptions((prev) => ({ ...prev, models: res.data.models }));
+        })
+        .catch((err) => {
+          console.error("Modeller alınırken hata:", err);
+        });
+    } else {
+      // Seri seçimi temizlendiyse, model ve lokasyon seçimlerini ve seçeneklerini sıfırla
+      setFilters((prev) => ({
+        ...prev,
+        model: null,
+        location: null,
+      }));
+      setFilterOptions((prev) => ({
+        ...prev,
+        models: [],
+        locations: [],
+      }));
+    }
+  };
 
-const handleModelChange = (model) => {
+  const handleModelChange = (model) => {
     if (model) {
       // Lokasyon seçimini sıfırla
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        location: null
+        location: null,
       }));
-      setFilterOptions(prev => ({
+      setFilterOptions((prev) => ({
         ...prev,
-        locations: []
+        locations: [],
       }));
       // Seçilen marka, seri ve modele ait lokasyonları getir
-      axios.get('/cars/locations', { params: { brand: filters.brand, series: filters.series, model } })
-        .then(res => {
-          setFilterOptions(prev => ({ ...prev, locations: res.data.locations }));
+      axios
+        .get("/cars/locations", {
+          params: { brand: filters.brand, series: filters.series, model },
         })
-        .catch(err => {
-          console.error('Lokasyonlar alınırken hata:', err);
+        .then((res) => {
+          setFilterOptions((prev) => ({
+            ...prev,
+            locations: res.data.locations,
+          }));
+        })
+        .catch((err) => {
+          console.error("Lokasyonlar alınırken hata:", err);
         });
     } else {
       // Model seçimi temizlendiyse, lokasyon seçimini ve seçeneklerini sıfırla
-      setFilters(prev => ({
+      setFilters((prev) => ({
         ...prev,
-        location: null
+        location: null,
       }));
-      setFilterOptions(prev => ({
+      setFilterOptions((prev) => ({
         ...prev,
-        locations: []
+        locations: [],
       }));
     }
   };
-  
+
   const applyFilters = () => {
     setPage(1); // Filtreleme yapıldığında sayfayı 1'e ayarlayalım
     fetchCars();
   };
-  
 
   const resetFilters = () => {
     setFilters({
@@ -313,6 +345,39 @@ const handleModelChange = (model) => {
           İlana Git
         </a>
       ),
+    },
+    {
+      title: "Ortalama Fiyat (TL)",
+      dataIndex: "_id",
+      key: "medianPrice",
+      render: (text, record) => {
+        const medianData = medianPrices[record._id];
+        if (medianData) {
+          return `${medianData.medianPrice.toLocaleString()} TL (${medianData.count} araç)`;
+        } else {
+          return '-';
+        }
+      },
+    },
+    {
+      title: "Fiyat Farkı (%)",
+      dataIndex: "_id",
+      key: "priceDifference",
+      render: (text, record) => {
+        const medianData = medianPrices[record._id];
+        if (medianData && medianData.medianPrice > 0) {
+          const priceDifferencePercent = ((record.price - medianData.medianPrice) / medianData.medianPrice) * 100;
+          const color = priceDifferencePercent < 0 ? 'green' : 'red';
+          const sign = priceDifferencePercent < 0 ? '-' : '+';
+          return (
+            <span style={{ color }}>
+              {sign}{Math.abs(priceDifferencePercent).toFixed(2)}%
+            </span>
+          );
+        } else {
+          return '-';
+        }
+      },
     },
   ];
 
@@ -473,6 +538,10 @@ const handleModelChange = (model) => {
         </div>
       </div>
       <div className="table-section" style={{ flex: 1, padding: "10px" }}>
+        <div className="sum-flex">
+          <div className="sum-flex-filter">Filtrelenen Araç Sayısı:<span>{total}</span> </div>
+          <div className="sum-flex-total">Toplam Araç Sayısı: <span>{totalCarsInDB}</span></div>
+        </div>
         {/* Tablo içeriği */}
         <div style={{ flex: 1, padding: "10px" }}>
           <Table

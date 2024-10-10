@@ -6,7 +6,7 @@ import { LogoutOutlined, UserOutlined, CarOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import axios from '../axiosConfig';
 
-const { Header, Content, Sider } = AntLayout;
+const { Header, Content,  Footer } = AntLayout;
 
 function Layout({ children, userRole, onLogout }) {
   const navigate = useNavigate();
@@ -23,6 +23,8 @@ function Layout({ children, userRole, onLogout }) {
 
   const menuItems = [
     { key: '1', icon: <CarOutlined />, label: 'Araç Listesi', onClick: () => navigate('/') },
+    { key: '2', icon: <CarOutlined />, label: 'Avantajlı Araçlar', onClick: () => navigate('/avantaj') },
+    { key: '3', icon: <CarOutlined />, label: 'Tavsiye', onClick: () => navigate('/tavsiye') },
   ];
 
   if (userRole === 'admin') {
@@ -31,19 +33,21 @@ function Layout({ children, userRole, onLogout }) {
 
   return (
     <AntLayout style={{ minHeight: '100vh' }}>
-      <Sider>
-        <div className="logo" style={{ height: '32px', margin: '16px', background: 'rgba(255, 255, 255, 0.3)' }} />
-        <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+      
+      <AntLayout>
+        <Header style={{ display:"flex",alignItems:"center", padding: 10,  paddingRight: '20px'}}>
+        <div className="logo" style={{padding:10,}} > <img style={{width:"100%",}} width={164} src="./carlogo.png"/> </div>
+        <div  style={{ display:"flex",alignItems:"center", width:"100%",  justifyContent:"space-between"}}>
+
+        <Menu theme="dark"  mode="horizontal" defaultSelectedKeys={['1']}>
           {menuItems.map(item => (
             <Menu.Item key={item.key} icon={item.icon} onClick={item.onClick}>
               {item.label}
             </Menu.Item>
           ))}
         </Menu>
-      </Sider>
-      <AntLayout>
-        <Header style={{ background: '#fff', padding: 0, textAlign: 'right', paddingRight: '20px' }}>
           <Button icon={<LogoutOutlined />} onClick={handleLogout}>Çıkış Yap</Button>
+          </div>
         </Header>
         <Content style={{ margin: '16px' }}>
           {children}
