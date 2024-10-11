@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
 import axios from "../axiosConfig";
-import { Table, Input, Button, InputNumber, Slider, DatePicker } from "antd";
+import { Table, Input, Button, InputNumber, Slider, DatePicker,message  } from "antd";
 import { DownloadOutlined } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 import moment from "moment";
 import "moment/locale/tr";
 import { Select } from "antd";
-import "./CarList.css"
+import "./CarList.css";
 
 moment.locale("tr");
 
@@ -18,31 +18,45 @@ function CarList() {
   const [filteredCars, setFilteredCars] = useState([]);
   const [totalCarsInDB, setTotalCarsInDB] = useState(0);
   const [medianPrices, setMedianPrices] = useState({});
-
+  const [loadingExport, setLoadingExport] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
     brands: [],
     series: [],
     models: [],
-    locations: [],
+    cities: [],
+    districts: [],
   });
-
   const [filters, setFilters] = useState({
     brand: null,
     series: null,
     model: null,
-    location: null,
+    city: null,
+    district: null,
     yearRange: [2000, 2024],
-    kmRange: [0, 500000],
-    priceRange: [0, 1000000],
+    kmRange: [0, 1000000],
+    priceRange: [0, 3000000],
     adDateRange: [null, null],
   });
-
   useEffect(() => {
     fetchCars();
     fetchBrands();
-    fetchTotalCars(); // Toplam araç sayısını getir
+    fetchCities(); 
+    fetchTotalCars();
   }, [page, pageSize]);
+  
+  const fetchCities = () => {
+    axios
+      .get("/cars/all-cities")
+      .then((res) => {
+        console.log(res.data.cities);
+        
+        setFilterOptions((prev) => ({ ...prev, cities: res.data.cities }));
+      })
+      .catch((err) => {
+        console.error("İller alınırken hata:", err);
+      });
+  };
 
   const fetchTotalCars = () => {
     axios
@@ -72,7 +86,8 @@ function CarList() {
       brand: filters.brand,
       series: filters.series,
       model: filters.model,
-      location: filters.location,
+      city: filters.city,
+      ilce: filters.district, // İlçe parametresi
       yearMin: filters.yearRange ? filters.yearRange[0] : null,
       yearMax: filters.yearRange ? filters.yearRange[1] : null,
       kmMin: filters.kmRange ? filters.kmRange[0] : null,
@@ -88,12 +103,14 @@ function CarList() {
     };
 
     try {
-      const res = await axios.get('/cars', { params });
+      const res = await axios.get("/cars", { params });
       const carsData = res.data.cars;
       setCars(carsData);
       setTotal(res.data.total);
       setFilteredCars(carsData);
-  
+      console.log("carsData",carsData);
+      
+
       // Her araç için medyan fiyatı al
       const medianPricesData = {};
       for (const car of carsData) {
@@ -102,12 +119,14 @@ function CarList() {
       }
       setMedianPrices(medianPricesData);
     } catch (err) {
-      console.error('Veriler alınırken hata:', err);
+      console.error("Veriler alınırken hata:", err);
     }
   };
 
   // Handle filter change
   const handleFilterChange = (name, value) => {
+
+
     setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: value,
@@ -115,21 +134,21 @@ function CarList() {
   };
 
   const handleBrandChange = (brand) => {
-    console.log("handle");
+
 
     if (brand) {
-      // Seri, model ve lokasyon seçimlerini sıfırla
+      // Seri, model ve i̇l seçimlerini sıfırla
       setFilters((prev) => ({
         ...prev,
         series: null,
         model: null,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
         series: [],
         models: [],
-        locations: [],
+        cities: [],
       }));
       // Seçilen markaya ait serileri getir
       axios
@@ -141,34 +160,34 @@ function CarList() {
           console.error("Seriler alınırken hata:", err);
         });
     } else {
-      // Marka seçimi temizlendiyse, seri, model ve lokasyon seçimlerini ve seçeneklerini sıfırla
+      // Marka seçimi temizlendiyse, seri, model ve i̇l seçimlerini ve seçeneklerini sıfırla
       setFilters((prev) => ({
         ...prev,
         series: null,
         model: null,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
         series: [],
         models: [],
-        locations: [],
+        cities: [],
       }));
     }
   };
 
   const handleSeriesChange = (series) => {
     if (series) {
-      // Model ve lokasyon seçimlerini sıfırla
+      // Model ve i̇l seçimlerini sıfırla
       setFilters((prev) => ({
         ...prev,
         model: null,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
         models: [],
-        locations: [],
+        cities: [],
       }));
       // Seçilen marka ve seriye ait modelleri getir
       axios
@@ -180,54 +199,93 @@ function CarList() {
           console.error("Modeller alınırken hata:", err);
         });
     } else {
-      // Seri seçimi temizlendiyse, model ve lokasyon seçimlerini ve seçeneklerini sıfırla
+      // Seri seçimi temizlendiyse, model ve i̇l seçimlerini ve seçeneklerini sıfırla
       setFilters((prev) => ({
         ...prev,
         model: null,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
         models: [],
-        locations: [],
+        cities: [],
       }));
     }
   };
 
   const handleModelChange = (model) => {
+
+
     if (model) {
-      // Lokasyon seçimini sıfırla
+      // İl seçimini sıfırla
       setFilters((prev) => ({
         ...prev,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
-        locations: [],
+        cities: [],
       }));
-      // Seçilen marka, seri ve modele ait lokasyonları getir
+      // Seçilen marka, seri ve modele ait i̇lları getir
       axios
-        .get("/cars/locations", {
+        .get("/cars/cities", {
           params: { brand: filters.brand, series: filters.series, model },
         })
         .then((res) => {
+
           setFilterOptions((prev) => ({
             ...prev,
-            locations: res.data.locations,
+            cities: res.data.cities,
           }));
         })
         .catch((err) => {
-          console.error("Lokasyonlar alınırken hata:", err);
+          console.error("İllar alınırken hata:", err);
         });
     } else {
-      // Model seçimi temizlendiyse, lokasyon seçimini ve seçeneklerini sıfırla
+      // Model seçimi temizlendiyse, i̇l seçimini ve seçeneklerini sıfırla
       setFilters((prev) => ({
         ...prev,
-        location: null,
+        city: null,
       }));
       setFilterOptions((prev) => ({
         ...prev,
-        locations: [],
+        cities: [],
+      }));
+    }
+  };
+
+  const handleCityChange = (city) => {
+    if (city) {
+      // İlçe seçimini sıfırla
+      setFilters((prev) => ({
+        ...prev,
+        district: null,
+      }));
+      setFilterOptions((prev) => ({
+        ...prev,
+        districts: [],
+      }));
+      // Seçilen ile ait ilçeleri getir
+      axios
+        .get("/cars/districts", { params: { city } })
+        .then((res) => {
+          setFilterOptions((prev) => ({
+            ...prev,
+            districts: res.data.districts,
+          }));
+        })
+        .catch((err) => {
+          console.error("İlçeler alınırken hata:", err);
+        });
+    } else {
+      // İl seçimi temizlendiyse, ilçe seçimini ve seçeneklerini sıfırla
+      setFilters((prev) => ({
+        ...prev,
+        district: null,
+      }));
+      setFilterOptions((prev) => ({
+        ...prev,
+        districts: [],
       }));
     }
   };
@@ -239,40 +297,96 @@ function CarList() {
 
   const resetFilters = () => {
     setFilters({
-      brand: "",
-      series: "",
-      model: "",
-      location: "",
+      brand: null,
+      series: null,
+      model: null,
+      city: null,
+      district: null,
       yearRange: [2000, 2024],
-      kmRange: [0, 500000],
-      priceRange: [0, 1000000],
+      kmRange: [0, 1000000],
+      priceRange: [0, 3000000],
       adDateRange: [null, null],
     });
     setFilteredCars(cars);
   };
+  
 
-  const exportToExcel = () => {
-    const data = filteredCars.map((car) => ({
-      İlanID: car.adId,
-      Marka: car.brand,
-      Seri: car.series,
-      Model: car.model,
-      Başlık: car.title,
-      Yıl: car.year,
-      KM: car.km,
-      Fiyat: car.price,
-      İlanTarihi: car.adDate,
-      Lokasyon: car.location,
-      SonGörüntülenme: moment(car.lastSeenDate).format("LLL"),
-      İlanURL: car.adUrl,
-    }));
+   // Güncellenmiş exportToExcel fonksiyonu
+   const exportToExcel = async () => {
+    setLoadingExport(true); 
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Araçlar");
+    try {
+      const res = await axios.get("/cars", {
+        params: {
+          page: 1,
+          limit: totalCarsInDB, // Tüm araçları çekmek için limiti toplam araç sayısına eşitliyoruz
+          // Eğer filtreleri dikkate almak istemiyorsanız, filtre parametrelerini eklemeyin
+          // Aşağıdaki gibi filtreleri eklemek isterseniz, mevcut filtre değerlerini kullanabilirsiniz:
+          // brand: filters.brand,
+          // series: filters.series,
+          // model: filters.model,
+          // city: filters.city,
+          // ilce: filters.district,
+          // yearMin: filters.yearRange ? filters.yearRange[0] : null,
+          // yearMax: filters.yearRange ? filters.yearRange[1] : null,
+          // kmMin: filters.kmRange ? filters.kmRange[0] : null,
+          // kmMax: filters.kmRange ? filters.kmRange[1] : null,
+          // priceMin: filters.priceRange ? filters.priceRange[0] : null,
+          // priceMax: filters.priceRange ? filters.priceRange[1] : null,
+          // adDateStart: filters.adDateRange[0]
+          //   ? filters.adDateRange[0].format("YYYY-MM-DD")
+          //   : null,
+          // adDateEnd: filters.adDateRange[1]
+          //   ? filters.adDateRange[1].format("YYYY-MM-DD")
+          //   : null,
+        },
+      });
 
-    XLSX.writeFile(workbook, "arac_listesi.xlsx");
+      const allCars = res.data.cars;
+
+      if (!allCars || allCars.length === 0) {
+        message.warning("İndirilecek araç bulunamadı.");
+        setLoadingExport(false);
+        return;
+      }
+
+      // Veriyi Excel formatına dönüştürmek için map işlemi
+      const data = allCars.map((car) => ({
+        İlanID: car.adId,
+        Marka: car.brand,
+        Seri: car.series,
+        Model: car.model,
+        Başlık: car.title,
+        Yıl: car.year,
+        KM: car.km,
+        Fiyat: car.price,
+        İlanTarihi: car.adDate ? moment(car.adDate).format("YYYY-MM-DD") : "-",
+        İl: car.city,
+        İlçe: car.ilce,
+        Semt: car.semt,
+        Mahalle: car.mahalle,
+        SonGörüntülenme: car.lastSeenDate ? moment(car.lastSeenDate).format("YYYY-MM-DD HH:mm:ss") : "-",
+        İlanURL: car.adUrl,
+      
+      }));
+
+      // Excel dosyasını oluşturma
+      const worksheet = XLSX.utils.json_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Araçlar");
+
+      // Dosyayı indirme
+      XLSX.writeFile(workbook, "arac_listesi_tum.xlsx");
+
+      message.success("Excel dosyası başarıyla indirildi.");
+    } catch (error) {
+      console.error("Excel dosyası indirilirken hata:", error);
+      message.error("Excel dosyası indirilirken bir hata oluştu.");
+    } finally {
+      setLoadingExport(false); // İndirme işlemi tamamlandığında loading durumunu kapat
+    }
   };
+
 
   const columns = [
     {
@@ -300,6 +414,7 @@ function CarList() {
       title: "Başlık",
       dataIndex: "title",
       key: "title",
+      render: (text, record) => <a href={record.adUrl}>{text}</a>,
     },
     {
       title: "Yıl",
@@ -312,6 +427,7 @@ function CarList() {
       dataIndex: "km",
       key: "km",
       sorter: (a, b) => a.km - b.km,
+      render: (text) => text ? text.toLocaleString('tr-TR') : '-',
     },
     {
       title: "Fiyat",
@@ -324,18 +440,15 @@ function CarList() {
       title: "İlan Tarihi",
       dataIndex: "adDate",
       key: "adDate",
+      render: (text) => text ? moment(text).format("LL") : '-', // Sadece tarih formatında
     },
+    
     {
-      title: "Lokasyon",
-      dataIndex: "location",
-      key: "location",
+      title: "İl",
+      dataIndex: "city",
+      key: "city",
     },
-    {
-      title: "Son Görüntülenme",
-      dataIndex: "lastSeenDate",
-      key: "lastSeenDate",
-      render: (text) => moment(text).format("LLL"),
-    },
+
     {
       title: "İlan Linki",
       dataIndex: "adUrl",
@@ -353,9 +466,11 @@ function CarList() {
       render: (text, record) => {
         const medianData = medianPrices[record._id];
         if (medianData) {
-          return `${medianData.medianPrice.toLocaleString()} TL (${medianData.count} araç)`;
+          return `${medianData.medianPrice.toLocaleString()} TL (${
+            medianData.count
+          } araç)`;
         } else {
-          return '-';
+          return "-";
         }
       },
     },
@@ -366,16 +481,19 @@ function CarList() {
       render: (text, record) => {
         const medianData = medianPrices[record._id];
         if (medianData && medianData.medianPrice > 0) {
-          const priceDifferencePercent = ((record.price - medianData.medianPrice) / medianData.medianPrice) * 100;
-          const color = priceDifferencePercent < 0 ? 'green' : 'red';
-          const sign = priceDifferencePercent < 0 ? '-' : '+';
+          const priceDifferencePercent =
+            ((record.price - medianData.medianPrice) / medianData.medianPrice) *
+            100;
+          const color = priceDifferencePercent < 0 ? "green" : "red";
+          const sign = priceDifferencePercent < 0 ? "-" : "+";
           return (
             <span style={{ color }}>
-              {sign}{Math.abs(priceDifferencePercent).toFixed(2)}%
+              {sign}
+              {Math.abs(priceDifferencePercent).toFixed(2)}%
             </span>
           );
         } else {
-          return '-';
+          return "-";
         }
       },
     },
@@ -459,19 +577,38 @@ function CarList() {
           </div>
 
           <div style={{ marginBottom: "10px" }}>
-            <label>Lokasyon:</label>
+            <label>İl:</label>
             <Select
               showSearch
-              placeholder="Lokasyon Seçiniz"
-              value={filters.location}
-              onChange={(value) => handleFilterChange("location", value)}
-              options={filterOptions.locations.map((location) => ({
-                value: location,
-                label: location,
+              placeholder="İl Seçiniz"
+              value={filters.city}
+              onChange={(value) => {
+                handleFilterChange("city", value);
+                handleCityChange(value);
+              }}
+              options={filterOptions.cities.map((city) => ({
+                value: city,
+                label: city,
               }))}
               allowClear
               style={{ width: "100%" }}
-              disabled={!filters.model} // Model seçilmediyse disable
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>İlçe:</label>
+            <Select
+              showSearch
+              placeholder="İlçe Seçiniz"
+              value={filters.district}
+              onChange={(value) => handleFilterChange("district", value)}
+              options={filterOptions.districts.map((district) => ({
+                value: district,
+                label: district,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+              disabled={!filters.city} // İl seçilmediyse disable
             />
           </div>
 
@@ -479,7 +616,7 @@ function CarList() {
             <label>Yıl Aralığı:</label>
             <Slider
               range
-              min={1990}
+              min={1985}
               max={2024}
               value={filters.yearRange}
               onChange={(value) => handleFilterChange("yearRange", value)}
@@ -490,7 +627,7 @@ function CarList() {
             <Slider
               range
               min={0}
-              max={500000}
+              max={1500000}
               step={1000}
               value={filters.kmRange}
               onChange={(value) => handleFilterChange("kmRange", value)}
@@ -501,7 +638,7 @@ function CarList() {
             <Slider
               range
               min={0}
-              max={2000000}
+              max={5000000}
               step={10000}
               value={filters.priceRange}
               onChange={(value) => handleFilterChange("priceRange", value)}
@@ -539,8 +676,12 @@ function CarList() {
       </div>
       <div className="table-section" style={{ flex: 1, padding: "10px" }}>
         <div className="sum-flex">
-          <div className="sum-flex-filter">Filtrelenen Araç Sayısı:<span>{total}</span> </div>
-          <div className="sum-flex-total">Toplam Araç Sayısı: <span>{totalCarsInDB}</span></div>
+          <div className="sum-flex-filter">
+            Filtrelenen Araç Sayısı:<span>{total}</span>{" "}
+          </div>
+          <div className="sum-flex-total">
+            Toplam Araç Sayısı: <span>{totalCarsInDB}</span>
+          </div>
         </div>
         {/* Tablo içeriği */}
         <div style={{ flex: 1, padding: "10px" }}>
