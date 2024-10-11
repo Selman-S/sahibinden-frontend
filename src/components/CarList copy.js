@@ -1,9 +1,7 @@
-// src/components/CarList.js
-
 import React, { useState, useEffect } from "react";
 import axios from "../axiosConfig";
-import { Table, Input, Button, InputNumber, Slider, DatePicker, message, Card, Row, Col, Pagination, Drawer } from "antd";
-import { DownloadOutlined, FilterOutlined } from "@ant-design/icons";
+import { Table, Input, Button, InputNumber, Slider, DatePicker,message  } from "antd";
+import { DownloadOutlined } from "@ant-design/icons";
 import * as XLSX from "xlsx";
 import moment from "moment";
 import "moment/locale/tr";
@@ -21,8 +19,6 @@ function CarList() {
   const [totalCarsInDB, setTotalCarsInDB] = useState(0);
   const [medianPrices, setMedianPrices] = useState({});
   const [loadingExport, setLoadingExport] = useState(false);
-  const [isMobile, setIsMobile] = useState(false); // Ekran boyutu kontrolü
-  const [showFilters, setShowFilters] = useState(false); // Mobilde filtre görünürlüğü
 
   const [filterOptions, setFilterOptions] = useState({
     brands: [],
@@ -42,33 +38,19 @@ function CarList() {
     priceRange: [0, 3000000],
     adDateRange: [null, null],
   });
-
   useEffect(() => {
     fetchCars();
     fetchBrands();
     fetchCities(); 
     fetchTotalCars();
-    handleResize(); // İlk yüklemede ekran boyutunu kontrol et
-    window.addEventListener('resize', handleResize); // Pencere boyutu değiştiğinde kontrol et
-
-    return () => {
-      window.removeEventListener('resize', handleResize); // Cleanup
-    };
   }, [page, pageSize]);
-
-  const handleResize = () => {
-    if (window.innerWidth < 768) { // 768px'den küçükse mobil olarak kabul et
-      setIsMobile(true);
-    } else {
-      setIsMobile(false);
-      setShowFilters(false); // Masaüstüne geçildiğinde filtreleri gizle
-    }
-  };
-
+  
   const fetchCities = () => {
     axios
       .get("/cars/all-cities")
       .then((res) => {
+        console.log(res.data.cities);
+        
         setFilterOptions((prev) => ({ ...prev, cities: res.data.cities }));
       })
       .catch((err) => {
@@ -97,7 +79,6 @@ function CarList() {
         console.error("Markalar alınırken hata:", err);
       });
   };
-
   const fetchCars = async () => {
     const params = {
       page,
@@ -127,6 +108,8 @@ function CarList() {
       setCars(carsData);
       setTotal(res.data.total);
       setFilteredCars(carsData);
+      console.log("carsData",carsData);
+      
 
       // Her araç için medyan fiyatı al
       const medianPricesData = {};
@@ -142,6 +125,8 @@ function CarList() {
 
   // Handle filter change
   const handleFilterChange = (name, value) => {
+
+
     setFilters((prevFilters) => ({
       ...prevFilters,
       [name]: value,
@@ -149,6 +134,8 @@ function CarList() {
   };
 
   const handleBrandChange = (brand) => {
+
+
     if (brand) {
       // Seri, model ve i̇l seçimlerini sıfırla
       setFilters((prev) => ({
@@ -227,6 +214,8 @@ function CarList() {
   };
 
   const handleModelChange = (model) => {
+
+
     if (model) {
       // İl seçimini sıfırla
       setFilters((prev) => ({
@@ -243,6 +232,7 @@ function CarList() {
           params: { brand: filters.brand, series: filters.series, model },
         })
         .then((res) => {
+
           setFilterOptions((prev) => ({
             ...prev,
             cities: res.data.cities,
@@ -303,9 +293,6 @@ function CarList() {
   const applyFilters = () => {
     setPage(1); // Filtreleme yapıldığında sayfayı 1'e ayarlayalım
     fetchCars();
-    if (isMobile) {
-      setShowFilters(false); // Filtre uygulandıktan sonra filtre panelini kapat
-    }
   };
 
   const resetFilters = () => {
@@ -321,13 +308,11 @@ function CarList() {
       adDateRange: [null, null],
     });
     setFilteredCars(cars);
-    if (isMobile) {
-      setShowFilters(false); // Filtre sıfırlandıktan sonra filtre panelini kapat
-    }
   };
+  
 
-  // Güncellenmiş exportToExcel fonksiyonu
-  const exportToExcel = async () => {
+   // Güncellenmiş exportToExcel fonksiyonu
+   const exportToExcel = async () => {
     setLoadingExport(true); 
 
     try {
@@ -336,6 +321,24 @@ function CarList() {
           page: 1,
           limit: totalCarsInDB, // Tüm araçları çekmek için limiti toplam araç sayısına eşitliyoruz
           // Eğer filtreleri dikkate almak istemiyorsanız, filtre parametrelerini eklemeyin
+          // Aşağıdaki gibi filtreleri eklemek isterseniz, mevcut filtre değerlerini kullanabilirsiniz:
+          // brand: filters.brand,
+          // series: filters.series,
+          // model: filters.model,
+          // city: filters.city,
+          // ilce: filters.district,
+          // yearMin: filters.yearRange ? filters.yearRange[0] : null,
+          // yearMax: filters.yearRange ? filters.yearRange[1] : null,
+          // kmMin: filters.kmRange ? filters.kmRange[0] : null,
+          // kmMax: filters.kmRange ? filters.kmRange[1] : null,
+          // priceMin: filters.priceRange ? filters.priceRange[0] : null,
+          // priceMax: filters.priceRange ? filters.priceRange[1] : null,
+          // adDateStart: filters.adDateRange[0]
+          //   ? filters.adDateRange[0].format("YYYY-MM-DD")
+          //   : null,
+          // adDateEnd: filters.adDateRange[1]
+          //   ? filters.adDateRange[1].format("YYYY-MM-DD")
+          //   : null,
         },
       });
 
@@ -364,6 +367,7 @@ function CarList() {
         Mahalle: car.mahalle,
         SonGörüntülenme: car.lastSeenDate ? moment(car.lastSeenDate).format("YYYY-MM-DD HH:mm:ss") : "-",
         İlanURL: car.adUrl,
+      
       }));
 
       // Excel dosyasını oluşturma
@@ -382,6 +386,7 @@ function CarList() {
       setLoadingExport(false); // İndirme işlemi tamamlandığında loading durumunu kapat
     }
   };
+
 
   const columns = [
     {
@@ -439,22 +444,21 @@ function CarList() {
     },
     
     {
-      title: "İl/İlçe",
+      title: "İl",
       dataIndex: "city",
       key: "city",
-      render: (text, record) => `${text} / ${record.ilce}`,
     },
 
-    // {
-    //   title: "İlan Linki",
-    //   dataIndex: "adUrl",
-    //   key: "adUrl",
-    //   render: (text) => (
-    //     <a href={text} target="_blank" rel="noopener noreferrer">
-    //       İlana Git
-    //     </a>
-    //   ),
-    // },
+    {
+      title: "İlan Linki",
+      dataIndex: "adUrl",
+      key: "adUrl",
+      render: (text) => (
+        <a href={text} target="_blank" rel="noopener noreferrer">
+          İlana Git
+        </a>
+      ),
+    },
     {
       title: "Ortalama Fiyat (TL)",
       dataIndex: "_id",
@@ -462,7 +466,9 @@ function CarList() {
       render: (text, record) => {
         const medianData = medianPrices[record._id];
         if (medianData) {
-          return `${medianData.medianPrice.toLocaleString()} TL (${medianData.count} araç)`;
+          return `${medianData.medianPrice.toLocaleString()} TL (${
+            medianData.count
+          } araç)`;
         } else {
           return "-";
         }
@@ -493,223 +499,181 @@ function CarList() {
     },
   ];
 
-  // Kart bileşeni için helper fonksiyon
-  const renderCard = (car) => {
-    return (
-      <Card key={car.adId} className="car-card">
-        <Row>
-          <Col xs={8}>
-            <img src={car.imageUrl} alt="Araç" className="car-image" />
-          </Col>
-          <Col xs={16}>
-            <div className="car-details">
-              <h3 className="car-title">{car.title}</h3>
-              <div className="car-info">
-                <div className="car-location">
-                  <span>{car.city} / {car.ilce}</span>
-                </div>
-                <div className="car-price">
-                  <span>{car.price.toLocaleString()} TL</span>
-                </div>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      </Card>
-    );
-  };
-
-  // Filtre panelini Drawer içinde göstermek (mobilde zaten mevcut)
-  const renderFilters = () => (
-    <div className="filters">
-      <h3>Filtreler</h3>
-      <div className="filter-item">
-        <label>Marka:</label>
-        <Select
-          showSearch
-          placeholder="Marka Seçiniz"
-          value={filters.brand}
-          onChange={(value) => {
-            handleFilterChange("brand", value);
-            handleBrandChange(value);
-          }}
-          options={filterOptions.brands.map((brand) => ({
-            value: brand,
-            label: brand,
-          }))}
-          allowClear
-          style={{ width: "100%" }}
-        />
-      </div>
-
-      <div className="filter-item">
-        <label>Seri:</label>
-        <Select
-          showSearch
-          placeholder="Seri Seçiniz"
-          value={filters.series}
-          onChange={(value) => {
-            handleFilterChange("series", value);
-            handleSeriesChange(value);
-          }}
-          options={filterOptions.series.map((series) => ({
-            value: series,
-            label: series,
-          }))}
-          allowClear
-          style={{ width: "100%" }}
-          disabled={!filters.brand} // Marka seçilmediyse disable
-        />
-      </div>
-
-      <div className="filter-item">
-        <label>Model:</label>
-        <Select
-          showSearch
-          placeholder="Model Seçiniz"
-          value={filters.model}
-          onChange={(value) => {
-            handleFilterChange("model", value);
-            handleModelChange(value);
-          }}
-          options={filterOptions.models.map((model) => ({
-            value: model,
-            label: model,
-          }))}
-          allowClear
-          style={{ width: "100%" }}
-          disabled={!filters.series} // Seri seçilmediyse disable
-        />
-      </div>
-
-      <div className="filter-item">
-        <label>İl:</label>
-        <Select
-          showSearch
-          placeholder="İl Seçiniz"
-          value={filters.city}
-          onChange={(value) => {
-            handleFilterChange("city", value);
-            handleCityChange(value);
-          }}
-          options={filterOptions.cities.map((city) => ({
-            value: city,
-            label: city,
-          }))}
-          allowClear
-          style={{ width: "100%" }}
-        />
-      </div>
-
-      <div className="filter-item">
-        <label>İlçe:</label>
-        <Select
-          showSearch
-          placeholder="İlçe Seçiniz"
-          value={filters.district}
-          onChange={(value) => handleFilterChange("district", value)}
-          options={filterOptions.districts.map((district) => ({
-            value: district,
-            label: district,
-          }))}
-          allowClear
-          style={{ width: "100%" }}
-          disabled={!filters.city} // İl seçilmediyse disable
-        />
-      </div>
-
-      <div className="filter-item">
-        <label>Yıl Aralığı:</label>
-        <Slider
-          range
-          min={1985}
-          max={2024}
-          value={filters.yearRange}
-          onChange={(value) => handleFilterChange("yearRange", value)}
-        />
-      </div>
-      <div className="filter-item">
-        <label>KM Aralığı:</label>
-        <Slider
-          range
-          min={0}
-          max={1500000}
-          step={1000}
-          value={filters.kmRange}
-          onChange={(value) => handleFilterChange("kmRange", value)}
-        />
-      </div>
-      <div className="filter-item">
-        <label>Fiyat Aralığı (TL):</label>
-        <Slider
-          range
-          min={0}
-          max={5000000}
-          step={10000}
-          value={filters.priceRange}
-          onChange={(value) => handleFilterChange("priceRange", value)}
-        />
-      </div>
-      <div className="filter-item">
-        <label>İlan Tarihi:</label>
-        <DatePicker.RangePicker
-          format="DD.MM.YYYY"
-          value={filters.adDateRange}
-          onChange={(dates) => handleFilterChange("adDateRange", dates)}
-        />
-      </div>
-      <Button
-        type="primary"
-        onClick={applyFilters}
-        style={{ marginTop: "10px" }}
-        block
-      >
-        Filtrele
-      </Button>
-      <Button onClick={resetFilters} style={{ marginTop: "10px" }} block>
-        Filtreleri Sıfırla
-      </Button>
-    </div>
-  );
-
   return (
-    <div className="carlist-container" style={{ display: "flex", flexDirection: isMobile ? 'column' : 'row' }}>
-      {/* Filtre Bölümü */}
-      {!isMobile ? (
+    <div className="carlist-container" style={{ display: "flex" }}>
+      <div
+        className="filter-section"
+        style={{
+          width: "250px",
+          padding: "10px",
+          borderRight: "1px solid #ccc",
+        }}
+      >
         <div
-          className="filter-section"
           style={{
             width: "250px",
             padding: "10px",
             borderRight: "1px solid #ccc",
           }}
         >
-          {renderFilters()}
-        </div>
-      ) : (
-        <>
+          <h3>Filtreler</h3>
+          <div style={{ marginBottom: "10px" }}>
+            <label>Marka:</label>
+            <Select
+              showSearch
+              placeholder="Marka Seçiniz"
+              value={filters.brand}
+              onChange={(value) => {
+                handleFilterChange("brand", value);
+                handleBrandChange(value);
+              }}
+              options={filterOptions.brands.map((brand) => ({
+                value: brand,
+                label: brand,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>Seri:</label>
+            <Select
+              showSearch
+              placeholder="Seri Seçiniz"
+              value={filters.series}
+              onChange={(value) => {
+                handleFilterChange("series", value);
+                handleSeriesChange(value);
+              }}
+              options={filterOptions.series.map((series) => ({
+                value: series,
+                label: series,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+              disabled={!filters.brand} // Marka seçilmediyse disable
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>Model:</label>
+            <Select
+              showSearch
+              placeholder="Model Seçiniz"
+              value={filters.model}
+              onChange={(value) => {
+                handleFilterChange("model", value);
+                handleModelChange(value);
+              }}
+              options={filterOptions.models.map((model) => ({
+                value: model,
+                label: model,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+              disabled={!filters.series} // Seri seçilmediyse disable
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>İl:</label>
+            <Select
+              showSearch
+              placeholder="İl Seçiniz"
+              value={filters.city}
+              onChange={(value) => {
+                handleFilterChange("city", value);
+                handleCityChange(value);
+              }}
+              options={filterOptions.cities.map((city) => ({
+                value: city,
+                label: city,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>İlçe:</label>
+            <Select
+              showSearch
+              placeholder="İlçe Seçiniz"
+              value={filters.district}
+              onChange={(value) => handleFilterChange("district", value)}
+              options={filterOptions.districts.map((district) => ({
+                value: district,
+                label: district,
+              }))}
+              allowClear
+              style={{ width: "100%" }}
+              disabled={!filters.city} // İl seçilmediyse disable
+            />
+          </div>
+
+          <div style={{ marginBottom: "10px" }}>
+            <label>Yıl Aralığı:</label>
+            <Slider
+              range
+              min={1985}
+              max={2024}
+              value={filters.yearRange}
+              onChange={(value) => handleFilterChange("yearRange", value)}
+            />
+          </div>
+          <div style={{ marginBottom: "10px" }}>
+            <label>KM Aralığı:</label>
+            <Slider
+              range
+              min={0}
+              max={1500000}
+              step={1000}
+              value={filters.kmRange}
+              onChange={(value) => handleFilterChange("kmRange", value)}
+            />
+          </div>
+          <div style={{ marginBottom: "10px" }}>
+            <label>Fiyat Aralığı (TL):</label>
+            <Slider
+              range
+              min={0}
+              max={5000000}
+              step={10000}
+              value={filters.priceRange}
+              onChange={(value) => handleFilterChange("priceRange", value)}
+            />
+          </div>
+          <div style={{ marginBottom: "10px" }}>
+            <label>İlan Tarihi:</label>
+            <DatePicker.RangePicker
+              format="DD.MM.YYYY"
+              value={filters.adDateRange}
+              onChange={(dates) => handleFilterChange("adDateRange", dates)}
+            />
+          </div>
           <Button
             type="primary"
-            icon={<FilterOutlined />}
-            onClick={() => setShowFilters(true)}
-            style={{ marginBottom: '10px' }}
+            onClick={applyFilters}
+            style={{ marginTop: "10px" }}
             block
           >
             Filtrele
           </Button>
-          <Drawer
-            title="Filtreler"
-            placement="left"
-            onClose={() => setShowFilters(false)}
-            visible={showFilters}
-            bodyStyle={{ padding: 10 }}
+          <Button onClick={resetFilters} style={{ marginTop: "10px" }} block>
+            Filtreleri Sıfırla
+          </Button>
+          <Button
+            type="default"
+            icon={<DownloadOutlined />}
+            onClick={exportToExcel}
+            style={{ marginTop: "10px" }}
+            block
           >
-            {renderFilters()}
-          </Drawer>
-        </>
-      )}
-
-      {/* Tablo veya Kart Bölümü */}
+            Excel Olarak İndir
+          </Button>
+        </div>
+      </div>
       <div className="table-section" style={{ flex: 1, padding: "10px" }}>
         <div className="sum-flex">
           <div className="sum-flex-filter">
@@ -719,43 +683,24 @@ function CarList() {
             Toplam Araç Sayısı: <span>{totalCarsInDB}</span>
           </div>
         </div>
-        {/* Tablo veya Kart içeriği */}
+        {/* Tablo içeriği */}
         <div style={{ flex: 1, padding: "10px" }}>
-          {isMobile ? (
-            <>
-              <div className="card-container">
-                {filteredCars.map(car => renderCard(car))}
-              </div>
-              <Pagination
-                current={page}
-                pageSize={pageSize}
-                total={total}
-                onChange={(page, pageSize) => {
-                  setPage(page);
-                  setPageSize(pageSize);
-                }}
-                showSizeChanger
-                style={{ marginTop: '16px', textAlign: 'center' }}
-              />
-            </>
-          ) : (
-            <Table
-              dataSource={filteredCars}
-              columns={columns}
-              rowKey="adId"
-              pagination={{
-                current: page,
-                pageSize: pageSize,
-                total: total,
-                onChange: (page, pageSize) => {
-                  setPage(page);
-                  setPageSize(pageSize);
-                },
-                showSizeChanger: true,
-              }}
-              scroll={{ x: 800 }}
-            />
-          )}
+          <Table
+            dataSource={filteredCars}
+            columns={columns}
+            rowKey="adId"
+            pagination={{
+              current: page,
+              pageSize: pageSize,
+              total: total,
+              onChange: (page, pageSize) => {
+                setPage(page);
+                setPageSize(pageSize);
+              },
+              showSizeChanger: true,
+            }}
+            scroll={{ x: 800 }}
+          />
         </div>
       </div>
     </div>

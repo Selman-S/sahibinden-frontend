@@ -1,0 +1,65 @@
+/* src/components/Layout.css */
+
+/* Genel Header Stilleri */
+.header {
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    background: #001529; /* Ant Design'ın varsayılan koyu tema rengi */
+  }
+  
+  /* Logo Stili */
+  .logo {
+    flex: 1;
+  }
+  
+  .logo img {
+    height: 40px; /* Logo yüksekliğini ayarlayın */
+  }
+  
+  /* Masaüstü Menü ve Çıkış Butonu Stilleri */
+  .menu-container {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .logout-button {
+    margin-left: 20px;
+  }
+  
+  /* Hamburger Butonu Stili */
+  .hamburger-button {
+    margin-left: auto;
+  }
+  
+  /* Drawer Menü Stilleri */
+  .ant-drawer-body {
+    padding: 0;
+  }
+  
+  .ant-menu-inline .ant-menu-item {
+    height: 50px;
+    line-height: 50px;
+  }
+  
+  /* Responsive Düzenlemeler */
+  @media (max-width: 768px) {
+    .logo img {
+      height: 30px; /* Mobilde logo yüksekliğini küçültün */
+    }
+  
+    .logout-button {
+      display: none; /* Mobilde çıkış butonunu gizleyin */
+    }
+  
+    .hamburger-button {
+      display: block;
+    }
+  
+    .menu-container {
+      display: none;
+    }
+  }
+  

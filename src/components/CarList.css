@@ -1,18 +1,6 @@
 /* CarList.css */
 
-@media (max-width: 768px) {
-    .carlist-container {
-      flex-direction: column;
-    }
-    .filter-section {
-      width: 100%;
-      border-right: none;
-      border-bottom: 1px solid #ccc;
-    }
-    .table-section {
-      width: 100%;
-    }
-  }
+
   
   .sum-flex {
     margin-left: 20px;
@@ -26,3 +14,90 @@
     font-weight: 700;
     color:#f00d0d;
   }
+
+  .car-card {
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+  }
+  
+  .car-image {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+  }
+  
+  .car-details {
+    padding: 10px;
+  }
+  
+  .car-title {
+    margin: 0 0 10px 0;
+    font-size: 18px;
+    font-weight: bold;
+  }
+  
+  .car-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .car-location {
+    font-size: 14px;
+    color: #555;
+  }
+  
+  .car-price {
+    font-size: 16px;
+    font-weight: bold;
+    color: #1890ff;
+  }
+  
+  /* Kart Container */
+  .card-container {
+    display: flex;
+    flex-direction: column;
+  }
+  .ant-table-cell {
+    padding: 8px !important;
+  }
+  
+  /* Responsive Düzenlemeler */
+  @media (max-width: 768px) {
+    .filter-section {
+      width: 100%;
+      border-right: none;
+    }
+  
+    .carlist-container {
+      flex-direction: column;
+    }
+  
+    .sum-flex {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    .sum-flex-filter,
+    .sum-flex-total {
+      margin-bottom: 10px;
+    }
+    .table-section {
+      padding: 0 !important;
+      margin-left: -12px !important;
+      width: calc(100% + 24px) !important;
+    }
+  
+    .ant-card.ant-card-bordered {
+      border: none ;
+    border-radius: 0 ;
+    border-bottom:1px solid #f0f0f0;
+    }
+    .car-title {
+      margin: 0 0 10px 0;
+      font-size: 14px;
+      font-weight: 500;
+    }
+  }
+
+ 
