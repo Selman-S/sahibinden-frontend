@@ -11,11 +11,10 @@
   /* Logo Stili */
   .logo {
     flex: 1;
+    display: flex;
   }
   
-  .logo img {
-    height: 40px; /* Logo yüksekliğini ayarlayın */
-  }
+
   
   /* Masaüstü Menü ve Çıkış Butonu Stilleri */
   .menu-container {
@@ -46,9 +45,7 @@
   
   /* Responsive Düzenlemeler */
   @media (max-width: 768px) {
-    .logo img {
-      height: 30px; /* Mobilde logo yüksekliğini küçültün */
-    }
+  
   
     .logout-button {
       display: none; /* Mobilde çıkış butonunu gizleyin */

@@ -334,8 +334,7 @@ function CarList() {
       const res = await axios.get("/cars", {
         params: {
           page: 1,
-          limit: totalCarsInDB, // Tüm araçları çekmek için limiti toplam araç sayısına eşitliyoruz
-          // Eğer filtreleri dikkate almak istemiyorsanız, filtre parametrelerini eklemeyin
+          limit: totalCarsInDB, 
         },
       });
 
@@ -445,16 +444,6 @@ function CarList() {
       render: (text, record) => `${text} / ${record.ilce}`,
     },
 
-    // {
-    //   title: "İlan Linki",
-    //   dataIndex: "adUrl",
-    //   key: "adUrl",
-    //   render: (text) => (
-    //     <a href={text} target="_blank" rel="noopener noreferrer">
-    //       İlana Git
-    //     </a>
-    //   ),
-    // },
     {
       title: "Ortalama Fiyat (TL)",
       dataIndex: "_id",
@@ -692,7 +681,7 @@ function CarList() {
             type="primary"
             icon={<FilterOutlined />}
             onClick={() => setShowFilters(true)}
-            style={{ marginBottom: '10px' }}
+            style={{ margin: '10px',width:"auto" }}
             block
           >
             Filtrele

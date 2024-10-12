@@ -7,13 +7,14 @@ import Login from './components/Login';
 import Dashboard from './components/Dashboard';
 import UserManagement from './components/UserManagement';
 import Layout from './components/Layout';
+import AdvantageousCars from './components/AdvantageousCars';
+import RecommendCars from './components/RecommendCars';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState('');
 
   useEffect(() => {
-    // Kullanıcının oturumunun olup olmadığını kontrol edelim
     axios.get('/auth/user')
       .then(res => {
         setIsLoggedIn(true);
@@ -46,6 +47,8 @@ function App() {
       <Layout userRole={userRole} onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/advantageous" element={<AdvantageousCars />} />
+          <Route path="/recommend" element={<RecommendCars />} />
           {userRole === 'admin' && (
             <Route path="/users" element={<UserManagement />} />
           )}

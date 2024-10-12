@@ -1,0 +1,61 @@
+/* src/components/RecommendCars.css */
+
+.car-card {
+    transition: box-shadow 0.3s;
+  }
+  
+  .car-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+  
+  .car-image {
+    border-radius: 4px;
+  }
+  
+  .car-details {
+    padding: 8px;
+  }
+  
+  .car-title {
+    margin: 0;
+    font-size: 1.2em;
+  }
+  
+  .car-info {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+  
+  .car-location, .car-price, .car-year-km {
+    font-size: 0.9em;
+    color: #555;
+  }
+  
+  .filters {
+    padding: 10px;
+  }
+  
+  .filter-section {
+    background-color: #fafafa;
+  }
+  
+  .results-section {
+    background-color: #fff;
+  }
+  
+  .sum-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .sum-flex-filter span {
+    font-weight: bold;
+  }
+  
+  .card-container {
+    display: flex;
+    flex-direction: column;
+  }
+  

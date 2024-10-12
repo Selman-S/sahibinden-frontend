@@ -33,8 +33,8 @@ function Layout({ children, userRole, onLogout }) {
 
   const menuItems = [
     { key: '1', icon: <CarOutlined />, label: 'Araç Listesi', onClick: () => navigate('/') },
-    { key: '2', icon: <PaperClipOutlined />, label: 'Avantajlı Araçlar', onClick: () => navigate('/avantaj') },
-    { key: '3', icon: <OrderedListOutlined />, label: 'Tavsiye', onClick: () => navigate('/tavsiye') },
+    { key: '2', icon: <PaperClipOutlined />, label: 'Avantajlı Araçlar', onClick: () => navigate('/advantageous') },
+    { key: '3', icon: <OrderedListOutlined />, label: 'Tavsiye', onClick: () => navigate('/recommend') },
   ];
 
   if (userRole === 'admin') {
@@ -116,7 +116,7 @@ function Layout({ children, userRole, onLogout }) {
             </div>
           )}
         </Header>
-        <Content style={{ margin: '16px' }}>
+        <Content>
           {children}
         </Content>
         <Footer style={{ textAlign: 'center' }}>
