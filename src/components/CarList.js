@@ -50,6 +50,7 @@ function CarList() {
     fetchTotalCars();
     handleResize(); // İlk yüklemede ekran boyutunu kontrol et
     window.addEventListener('resize', handleResize); // Pencere boyutu değiştiğinde kontrol et
+console.log(filteredCars);
 
     return () => {
       window.removeEventListener('resize', handleResize); // Cleanup
