@@ -484,6 +484,27 @@ function CarList() {
 
   // Kart bileşeni için helper fonksiyon
   const renderCard = (car) => {
+    const medianData = medianPrices[car._id];
+    let averagePrice = '-';
+    let priceDifference = '-';
+  
+    if (medianData) {
+      averagePrice = `${medianData.medianPrice.toLocaleString()} TL (${medianData.count} araç)`;
+      if (medianData.medianPrice > 0) {
+        const priceDifferencePercent =
+          ((car.price - medianData.medianPrice) / medianData.medianPrice) *
+          100;
+        const color = priceDifferencePercent < 0 ? "green" : "red";
+        const sign = priceDifferencePercent < 0 ? "-" : "+";
+        priceDifference = (
+          <span style={{ color }}>
+            {sign}
+            {Math.abs(priceDifferencePercent).toFixed(2)}%
+          </span>
+        );
+      }
+    }
+  
     return (
       <Card key={car.adId} className="car-card">
         <Row>
@@ -494,11 +515,23 @@ function CarList() {
             <div className="car-details">
               <h3 className="car-title">{car.title}</h3>
               <div className="car-info">
+                <div className="car-brand-model">
+                  <span><strong>Marka/Seri/Model:</strong> {car.brand} / {car.series} / {car.model}</span>
+                </div>
+                <div className="car-year-km">
+                  <span><strong>Yıl/KM:</strong> {car.year} / {car.km ? car.km.toLocaleString() : '-'} KM</span>
+                </div>
                 <div className="car-location">
-                  <span>{car.city} / {car.ilce}</span>
+                  <span><strong>Konum:</strong> {car.city} / {car.ilce}</span>
                 </div>
                 <div className="car-price">
-                  <span>{car.price.toLocaleString()} TL</span>
+                  <span><strong>Fiyat:</strong> {car.price.toLocaleString()} TL</span>
+                </div>
+                <div className="car-average-price">
+                  <span><strong>Ortalama Fiyat:</strong> {averagePrice}</span>
+                </div>
+                <div className="car-price-difference">
+                  <span><strong>Fiyat Farkı:</strong> {priceDifference}</span>
                 </div>
               </div>
             </div>
@@ -507,6 +540,7 @@ function CarList() {
       </Card>
     );
   };
+  
 
   // Filtre panelini Drawer içinde göstermek (mobilde zaten mevcut)
   const renderFilters = () => (

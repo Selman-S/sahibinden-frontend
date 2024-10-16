@@ -12,46 +12,47 @@ import RecommendCars from './components/RecommendCars';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState('');
+  // const [userRole, setUserRole] = useState('');
 
-  useEffect(() => {
-    axios.get('/auth/user')
-      .then(res => {
-        setIsLoggedIn(true);
-        setUserRole(res.data.role);
-      })
-      .catch(() => {
-        setIsLoggedIn(false);
-        setUserRole('');
-      });
-  }, []);
+  // useEffect(() => {
+  //   axios.get('/auth/user')
+  //     .then(res => {
+  //       setIsLoggedIn(true);
+  //       setUserRole(res.data.role);
+  //     })
+  //     .catch(() => {
+  //       setIsLoggedIn(false);
+  //       setUserRole('');
+  //     });
+  // }, []);
 
   const handleLogout = () => {
     setIsLoggedIn(false);
-    setUserRole('');
+    // setUserRole('');
   };
 
-  if (!isLoggedIn) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
-          <Route path="*" element={<Navigate to="/login" />} />
-        </Routes>
-      </Router>
-    );
-  }
+  // if (!isLoggedIn) {
+  //   return (
+  //     <Router>
+  //       <Routes>
+  //         <Route path="/login" element={<Login onLogin={() => setIsLoggedIn(true)} />} />
+  //         <Route path="*" element={<Navigate to="/login" />} />
+  //       </Routes>
+  //     </Router>
+  //   );
+  // }
 
   return (
     <Router>
-      <Layout userRole={userRole} onLogout={handleLogout}>
+      {/* <Layout userRole={userRole} onLogout={handleLogout}> */}
+      <Layout  onLogout={handleLogout}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/advantageous" element={<AdvantageousCars />} />
           <Route path="/recommend" element={<RecommendCars />} />
-          {userRole === 'admin' && (
+          {/* {userRole === 'admin' && (
             <Route path="/users" element={<UserManagement />} />
-          )}
+          )} */}
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Layout>

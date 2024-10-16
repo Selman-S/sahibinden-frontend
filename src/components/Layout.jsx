@@ -16,7 +16,8 @@ import './Layout.css'; // Stil dosyasını ekleyin
 
 const { Header, Content, Footer } = AntLayout;
 
-function Layout({ children, userRole, onLogout }) {
+// function Layout({ children, userRole, onLogout }) {
+function Layout({ children,  onLogout }) {
   const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false); // Ekran boyutu kontrolü
   const [drawerVisible, setDrawerVisible] = useState(false); // Drawer görünürlüğü
@@ -37,9 +38,9 @@ function Layout({ children, userRole, onLogout }) {
     { key: '3', icon: <OrderedListOutlined />, label: 'Tavsiye', onClick: () => navigate('/recommend') },
   ];
 
-  if (userRole === 'admin') {
-    menuItems.push({ key: '4', icon: <UserOutlined />, label: 'Kullanıcı Yönetimi', onClick: () => navigate('/users') });
-  }
+  // if (userRole === 'admin') {
+  //   menuItems.push({ key: '4', icon: <UserOutlined />, label: 'Kullanıcı Yönetimi', onClick: () => navigate('/users') });
+  // }
 
   useEffect(() => {
     handleResize(); // İlk yüklemede ekran boyutunu kontrol et
@@ -95,9 +96,9 @@ function Layout({ children, userRole, onLogout }) {
                       {item.label}
                     </Menu.Item>
                   ))}
-                  <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
+                  {/* <Menu.Item key="logout" icon={<LogoutOutlined />} onClick={handleLogout}>
                     Çıkış Yap
-                  </Menu.Item>
+                  </Menu.Item> */}
                 </Menu>
               </Drawer>
             </>
@@ -110,9 +111,9 @@ function Layout({ children, userRole, onLogout }) {
                   </Menu.Item>
                 ))}
               </Menu>
-              <Button icon={<LogoutOutlined />} onClick={handleLogout} className="logout-button">
+              {/* <Button icon={<LogoutOutlined />} onClick={handleLogout} className="logout-button">
                 Çıkış Yap
-              </Button>
+              </Button> */}
             </div>
           )}
         </Header>
